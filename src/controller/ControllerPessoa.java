@@ -3,9 +3,8 @@ package controller;
 import dao.DaoPessoa;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JOptionPane;
 import model.Pessoa;
-import javax.swing.JFrame;
+
 
 
 
@@ -24,48 +23,93 @@ public class ControllerPessoa {
     }
     
 
-    
-
-
-
 
     
-    
-public void inserirPessoa(Pessoa p, JFrame form){
-    if(!p.getNome().equals("") && !p.getCpf().equals("") && p.getIdade()!= 0)
+public boolean inserirPessoa(Pessoa p){
+    if (!pessoaValida(p))
     {
-        dao.salvarPessoa(p);
-        JOptionPane.showMessageDialog(form, "Pessoa salva com sucesso!", "Sucesso", JOptionPane.PLAIN_MESSAGE );
-    }
-    else{
-        JOptionPane.showMessageDialog(form, "Existem campos em branco!! ", "Alerta", JOptionPane.WARNING_MESSAGE);
-    }
-}
-    public void editarPessoa(Pessoa p, JFrame form){
-    if(!p.getNome().equals("") && !p.getCpf().equals("") && p.getIdade()!= 0 && p.getId()!=0)
-    {
-        dao.editarPessoa(p);
-        JOptionPane.showMessageDialog(form, "Pessoa alterada com sucesso!", "Sucesso", JOptionPane.PLAIN_MESSAGE );
-    }
-    else{
-        JOptionPane.showMessageDialog(form, "Existem campos em branco!! ", "Alerta", JOptionPane.WARNING_MESSAGE);
-    }
+     return false;   
+    }    
+dao.salvarPessoa(p);
+
+carregarPessoas();
+
+ultimo();
+
+return true;
+
 }
 
+public boolean alterarPessoa(Pessoa p){
+    if (!pessoaValida(p))
+    {
+     return false;   
+    }
+    if (p.getId()<=0)
+    {
+        return false;
+    }
+   dao.editarPessoa(p);
 
-public void deletarPessoa(int identificador, JFrame form) 
+carregarPessoas();
+
+return true;
+
+}
+
+
+
+
+public Pessoa deletarPessoa(int id) 
 {
-    dao.excluirPessoa(identificador);
-    JOptionPane.showMessageDialog(form, "Pessoa excluída com sucesso!", "Sucesso", JOptionPane.PLAIN_MESSAGE );
+    if (id <= 0)
+    {
+        return null;  
+    }
+   Pessoa p = getPessoaporId(indice);
+   
+   int indiceExcluido = indice;
+   dao.excluirPessoa(id);
+   carregarPessoas();
+   
+   if(pessoas.isEmpty())
+   {
+       indice = 0;
+       return null;
+   }
+   
+   
+   
+   if (indiceExcluido< pessoas.size())
+   {
+       indice = indiceExcluido;
+   }
+   else {
+       indice = pessoas.size()-1;
+   }
+return pessoas.get(id);
+
+   
 }
 
 public List<Pessoa> getPessoa()
 {
-    List<Pessoa> pessoas = new ArrayList<>();
-    pessoas.clear();
-    pessoas= dao.getPessoa();
+    carregarPessoas();
     return pessoas;
 }
+
+public Pessoa getPessoaporId(int id)
+{
+   for (Pessoa p : pessoas)
+   {
+    if (p.getId()== id)
+    {
+        return p;
+    }    
+   }
+   return null;
+}
+
 
 private void carregarPessoas()
 {
@@ -108,7 +152,84 @@ private void carregarPessoas()
 
 }
  
+public Pessoa ultimo()
+{   
+  if(pessoas.isEmpty())
+  {
+      return null;
+  }  
+  indice = pessoas.size()-1;
+  return pessoas.get(indice);
+  
+}
+
+public Pessoa primeiro()
+{
+    if(pessoas.isEmpty())
+    { 
+      return null;
+    }
+    indice = 0;
+    return pessoas.get(indice);
+}
+
+public Pessoa proximo()
+{
+    if(pessoas.isEmpty())
+    { 
+      return null;
+    }
+    if (indice < pessoas.size()-1)
+    {
+        indice ++;
+    }
+    return pessoas.get(indice);
+        
+}
+
+    public Pessoa anterior()
+{
+    if(pessoas.isEmpty())
+    { 
+      return null;
+    }
+    if (indice > 0)
+    {
+        indice --;
+    }
+    return pessoas.get(indice);
+
+}
+    
+
+    public int getIndice()
+{
+    return indice;
+}
+
+public int getQuantidadePessoas()
+{
+    return pessoas.size();
+}
+
+// Controle de Navegação//
+
+public boolean temPessoas()
+{
+  return !pessoas.isEmpty();
+}
+
+public boolean temAnterior()
+{
+    return !pessoas.isEmpty() && indice > 0;
+}
+
+public boolean temProximo()
+{
+     return !pessoas.isEmpty() && indice < pessoas.size()-1;
+}
 
 
 
+    
 }

@@ -4,11 +4,11 @@
  */
 package view;
 
+import controller.ControllerCarro;
 import model.Carro;
 import java.util.List;
-import java.util.ArrayList;
 import javax.swing.JOptionPane;
-import dao.DaoCarro;
+
 
 /**
  *
@@ -18,13 +18,11 @@ public class FrmCadCarro extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(FrmCadCarro.class.getName());
     
-    // 1. O DAO continua aqui
-    DaoCarro dao = new DaoCarro();
     
     // 2. A lista nasce vazia, esperando os dados
     List<Carro> lista = new java.util.ArrayList<>();
     int indice = 0;
-
+    ControllerCarro controleCarro = new ControllerCarro(); 
     /**
      * Creates new form FrmCadCarro
      */

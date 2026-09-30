@@ -28,12 +28,12 @@ public class FrmCadPessoa extends javax.swing.JFrame {
         lista = controlePessoa.getPessoa(); 
         
         // 3. AGORA SIM, VERIFICA SE A LISTA VEIO VAZIA DO BANCO
-        if (lista.isEmpty()) {
-            desabilitarTodosBotoes(); // Se não tem ninguém no banco, desabilita a navegação
+        if (controlePessoa.temPessoas()){
+            atualizarTodosBotoes(); // Se não tem ninguém no banco, desabilita a navegação
         } else {
             // Se tem pessoas no banco, vai para a primeira (índice 0) e mostra na tela!
-            indice = 0;
-            mostrarDadosTela();
+            mostrarPessoa(controlePessoa.primeiro());
+            
         }
     }
 
@@ -235,32 +235,22 @@ public class FrmCadPessoa extends javax.swing.JFrame {
     }//GEN-LAST:event_btnNovoActionPerformed
 
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-    Pessoa p = new Pessoa();
-    p.setNome(txtNome.getText());
-    p.setCpf(txtCpf.getText());
-    p.setIdade((int) txtIdade.getValue());
-
-    // 2. CHAMA O DAO PARA SALVAR NO BANCO DE DADOS
-    controlePessoa.inserirPessoa(p, this);
-
-    
-
-    // 4. Atualiza a lista da tela buscando do banco
-    
-    lista = controlePessoa.getPessoa();
-    
-    if (lista.size() == 1) { 
-            btnPrimeiro.setEnabled(true);
-            btnUltimo.setEnabled(true);
-            btnAnterior.setEnabled(true);
-            btnProximo.setEnabled(true);
+   
+    //try 
+       Pessoa p = obterPessoadaTela();
+        boolean salvou = controlePessoa.inserirPessoa(p);
+        if (salvou)
+        {
+        JOptionPane.showMessageDialog(this, "Carro salvo com sucesso!");
+        
+        mostrarPessoa(controlePessoa.ultimo());
+        atualizarTodosBotoes();
         }
-    // 5. Vai para o último registro para mostrar na tela
-    if(!lista.isEmpty()){
-        indice = lista.size() - 1;
-        mostrarDadosTela();
-    }
-    limparCampos();
+    
+        //catch (NumberFormatException e)
+        //{
+           // JOptionPane.showMessageDialog(this, "O ano deve ser um número", "Atenção", JOptionPane.WARNING_MESSAGE);    
+        //}
     }//GEN-LAST:event_btnSalvarActionPerformed
 
     private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
@@ -298,31 +288,29 @@ public class FrmCadPessoa extends javax.swing.JFrame {
     }//GEN-LAST:event_btnExcluirActionPerformed
 
     private void btnPrimeiroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrimeiroActionPerformed
-        indice = 0;
-        mostrarDadosTela();
+        Pessoa p = controlePessoa.primeiro();
+        mostrarPessoa(p);
+        atualizarTodosBotoes();
+        
     }//GEN-LAST:event_btnPrimeiroActionPerformed
 
     private void btnUltimoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUltimoActionPerformed
-        indice = lista.size() - 1;
-        mostrarDadosTela();
+        Pessoa p = controlePessoa.ultimo();
+        mostrarPessoa(p);
+        atualizarTodosBotoes();
     }//GEN-LAST:event_btnUltimoActionPerformed
 
     private void btnAnteriorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAnteriorActionPerformed
-        if (indice > 0) {
-            indice--;
-            mostrarDadosTela();
-        } else {
-            JOptionPane.showMessageDialog(this, "Você já está na primeira pessoa");
-        }
+            Pessoa p = controlePessoa.anterior();
+            mostrarPessoa(p);
+            atualizarTodosBotoes();
+
     }//GEN-LAST:event_btnAnteriorActionPerformed
 
     private void btnProximoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnProximoActionPerformed
-        if (indice < lista.size() - 1) {
-            indice++;
-            mostrarDadosTela();
-        } else {
-            JOptionPane.showMessageDialog(this, "Você já está na última pessoa");
-        }
+        Pessoa p = controlePessoa.proximo();
+        mostrarPessoa(p);
+        atualizarTodosBotoes();
     }//GEN-LAST:event_btnProximoActionPerformed
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
@@ -406,11 +394,15 @@ public class FrmCadPessoa extends javax.swing.JFrame {
     private javax.swing.JTextField txtNome;
     // End of variables declaration//GEN-END:variables
 
-    private void mostrarDadosTela() {
-        txtId.setText(""+lista.get(indice).getId());
-        txtNome.setText(lista.get(indice).getNome());
-        txtCpf.setText(lista.get(indice).getCpf());
-        txtIdade.setValue(lista.get(indice).getIdade());
+    private void mostrarPessoa(Pessoa p) {
+        if(p==null)
+        {
+            return;
+        }
+        txtId.setText(String.valueOf(p.getId()));
+        txtNome.setText(p.getNome());
+        txtCpf.setText(p.getCpf());
+        txtIdade.setValue(p.getIdade());
     }
 
     public void limparCampos() {
@@ -418,12 +410,33 @@ public class FrmCadPessoa extends javax.swing.JFrame {
         txtCpf.setText("");
         txtIdade.setValue(0);
     }
-    private void desabilitarTodosBotoes()
+    private void atualizarTodosBotoes()
 {
-    btnPrimeiro.setEnabled(false);
+    
+    if (!controlePessoa.temPessoas()){
+        btnPrimeiro.setEnabled(false);
+        btnUltimo.setEnabled(false);
+        btnProximo.setEnabled(false);
+        btnAnterior.setEnabled(false);
+        return;
+    }
+    
+    btnPrimeiro.setEnabled(true);
     btnUltimo.setEnabled(false);
-    btnProximo.setEnabled(false);
-    btnAnterior.setEnabled(false);
+    
+    btnAnterior.setEnabled(controlePessoa.temAnterior());
+    btnProximo.setEnabled(controlePessoa.temProximo());
+    
+    
 }
+    
+    private Pessoa obterPessoadaTela()
+    {
+    Pessoa p = new Pessoa();
+    if (!txtId.getText().isEmpty())
+    {
+        
+    }
+    }
 
 }
